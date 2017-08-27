@@ -386,7 +386,7 @@ public class WeatherActivity extends AppCompatActivity implements GoogleApiClien
         }, 500);
 
     }
-//csashtft
+//csashtddccdcd
     public void getCurrentDate(){
         long date = System.currentTimeMillis();
 
