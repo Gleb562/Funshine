@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--<android.support.v4.widget.SwipeRefreshLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/swipe_container"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content">-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#499EEC"
+    tools:context="com.example.gleb1.funshine.WeatherActivity"
+    android:orientation="vertical"
+    android:weightSum="1">
+
+    <xyz.matteobattilana.library.WeatherView
+        android:id="@+id/weatherViewMain"
+        android:layout_width="match_parent"
+        android:layout_height="1dp" />
+
+    <android.support.v7.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:cardBackgroundColor="#499EEC"
+        app:cardElevation="7dp">
+
+        <android.support.v4.widget.SwipeRefreshLayout xmlns:android="http://schemas.android.com/apk/res/android"
+            android:id="@+id/swipe_container"
+            android:layout_width="wrap_content"
+            android:layout_height="270dp">
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingLeft="10dp"
+                    android:paddingTop="10dp">
+
+                    <ImageView
+                        android:id="@+id/weatherIconMini"
+                        android:layout_width="50dp"
+                        android:layout_height="50dp"
+                        app:srcCompat="@drawable/umbrella_logo" />
+
+                    <ImageView
+                        android:id="@+id/imageView2"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        app:srcCompat="@drawable/funshine_logo" />
+
+                    <TextView
+                        android:id="@+id/updateTextView"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="top"
+                        android:layout_marginLeft="100dp"
+                        android:layout_weight="1"
+                        android:text="Last update: 00:00" />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/tempLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:paddingLeft="25dp"
+                    android:paddingTop="25dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_marginTop="55dp"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:id="@+id/weatherDate"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:fontFamily="serif"
+                            android:text="Today, May 1"
+                            android:textColor="#FFFFFF"
+                            android:textSize="25sp" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="bottom"
+                        android:orientation="horizontal">
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal">
+
+                            <TextView
+                                android:id="@+id/currentTemp"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:fontFamily="sans-serif-smallcaps"
+                                android:text="78"
+                                android:textColor="#FFFFFF"
+                                android:textSize="90sp" />
+
+                            <LinearLayout
+                                android:layout_width="wrap_content"
+                                android:layout_height="match_parent"
+                                android:layout_weight="1"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:id="@+id/textView"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:paddingTop="7dp"
+                                    android:text=" °C"
+                                    android:textColor="#FFFFFF"
+                                    android:textSize="45sp" />
+
+                            </LinearLayout>
+
+                            <TextView
+                                android:id="@+id/lowTemp"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:fontFamily="sans-serif-smallcaps"
+                                android:text="64°"
+                                android:textColor="#FFFFFF"
+                                android:textSize="25sp"
+                                android:visibility="invisible" />
+
+                        </LinearLayout>
+
+                        <ImageView
+                            android:id="@+id/weatherIcon"
+                            android:layout_width="130dp"
+                            android:layout_height="130dp"
+                            android:layout_marginLeft="10dp"
+                            app:srcCompat="@drawable/sunny" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:weightSum="3">
+
+                        <TextView
+                            android:id="@+id/cityCountry"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="2"
+                            android:fontFamily="serif"
+                            android:text="Portland, USA"
+                            android:textColor="@color/common_google_signin_btn_text_dark_default"
+                            android:textSize="20sp" />
+
+                        <TextView
+                            android:id="@+id/weatherDescription"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="serif"
+                            android:text="Clear"
+                            android:textColor="@color/common_google_signin_btn_text_dark_default"
+                            android:textSize="20sp" />
+                    </LinearLayout>
+                </LinearLayout>
+            </FrameLayout>
+        </android.support.v4.widget.SwipeRefreshLayout>
+    </android.support.v7.widget.CardView>
+
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/content_weather_reports"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#FFFFFF"></android.support.v7.widget.RecyclerView>
+
+
+</LinearLayout>
+<!--
+</android.support.v4.widget.SwipeRefreshLayout>-->
