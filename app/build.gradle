@@ -31,7 +31,7 @@ dependencies {
     compile 'com.android.support:recyclerview-v7:26.+'
     compile 'com.android.support:cardview-v7:26.+'
     testCompile 'junit:junit:4.12'
-
+    compile 'com.android.support:design:26.+'
     compile 'com.github.MatteoBattilana:WeatherView:1.1.1'
 
     compile 'com.thoughtbot:expandablerecyclerview:1.3'
