@@ -51,7 +51,8 @@ public class DailyWeatherReport {
         String [] months = {"Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sept","Oct",
                 "Nov","Dec"};
         int tempMonth = Integer.parseInt(rawDate.substring(5,7));
-        String tempDay = rawDate.substring(8,10);
+        int tempDay = Integer.parseInt(rawDate.substring(8,10));
+
         String prettyDate = months[tempMonth-1] + " " + tempDay;
 
         return prettyDate;

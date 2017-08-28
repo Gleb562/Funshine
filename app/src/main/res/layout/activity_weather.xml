@@ -10,7 +10,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#499EEC"
-    tools:context="com.example.gleb1.funshine.WeatherActivity"
+    tools:context="com.example.gleb1.funshine.activities.WeatherActivity"
     android:orientation="vertical"
     android:weightSum="1">
 
@@ -84,7 +84,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:fontFamily="serif"
+                            android:fontFamily="sans-serif-condensed"
                             android:text="Today, May 1"
                             android:textColor="#FFFFFF"
                             android:textSize="25sp" />
@@ -106,7 +106,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
-                                android:fontFamily="sans-serif-smallcaps"
+                                android:fontFamily="serif"
                                 android:text="78"
                                 android:textColor="#FFFFFF"
                                 android:textSize="90sp" />
@@ -161,7 +161,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_weight="2"
-                            android:fontFamily="serif"
+                            android:fontFamily="sans-serif-condensed"
                             android:text="Portland, USA"
                             android:textColor="@color/common_google_signin_btn_text_dark_default"
                             android:textSize="20sp" />
@@ -170,7 +170,7 @@
                             android:id="@+id/weatherDescription"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:fontFamily="serif"
+                            android:fontFamily="sans-serif-condensed"
                             android:text="Clear"
                             android:textColor="@color/common_google_signin_btn_text_dark_default"
                             android:textSize="20sp" />

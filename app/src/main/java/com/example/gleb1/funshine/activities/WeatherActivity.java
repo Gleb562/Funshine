@@ -1,6 +1,8 @@
-package com.example.gleb1.funshine;
+package com.example.gleb1.funshine.activities;
 
 import android.Manifest;
+import android.animation.ObjectAnimator;
+import android.animation.ValueAnimator;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Handler;
@@ -18,6 +20,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -26,14 +29,13 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
+import com.example.gleb1.funshine.R;
 import com.example.gleb1.funshine.model.DailyWeatherReport;
 import com.example.gleb1.funshine.model.TodayWeatherReport;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
-
-import com.example.gleb1.funshine.R;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -61,12 +63,14 @@ public class WeatherActivity extends AppCompatActivity implements GoogleApiClien
 
     private ImageView weatherIcon;
     private ImageView weatherIconMini;
+    private ImageView arrowDown;
     private TextView weatherDate;
     private TextView currentTemp;
     private TextView lowTemp;
     private TextView cityCountry;
     private TextView weatherDescription;
     private TextView updateTextView;
+    private LinearLayout hourlyWeather;
 
     WeatherAdapter mAdapter;
     WeatherView weatherView;
@@ -87,6 +91,7 @@ public class WeatherActivity extends AppCompatActivity implements GoogleApiClien
         weatherDescription = (TextView)findViewById(R.id.weatherDescription);
         updateTextView = (TextView)findViewById(R.id.updateTextView);
 
+
         RecyclerView recyclerView = (RecyclerView)findViewById(R.id.content_weather_reports);
         mAdapter = new WeatherAdapter(weatherReportlist);
         recyclerView.setAdapter(mAdapter);
@@ -102,8 +107,6 @@ public class WeatherActivity extends AppCompatActivity implements GoogleApiClien
         swipeLayout.setOnRefreshListener(this);
 
     }
-
-
 
     public void downloadWeatherData(Location location){
         final String url = URL_BASE + URL_COORD + location.getLatitude() + "&lon=" + location.getLongitude() + URL_UNITS + URL_API_KEY;
@@ -320,15 +323,78 @@ public class WeatherActivity extends AppCompatActivity implements GoogleApiClien
         }
 
         @Override
-        public void onBindViewHolder(WeatherReportViewHolder holder, int position) {
+        public void onBindViewHolder(final WeatherReportViewHolder holder, int position) {
             DailyWeatherReport report = mDailyWeatherReports.get(position);
             holder.updateUI(report);
+
+            final WeatherReportViewHolder vHolder = holder;
+            holder.itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    collapseExpandTextView(holder.itemView);
+
+                }
+            });
         }
 
         @Override
         public int getItemCount() {
             return mDailyWeatherReports.size();
         }
+    }
+    void collapseExpandTextView(View view) {
+        hourlyWeather = (LinearLayout) view.findViewById(R.id.hourly_weather);
+        arrowDown = (ImageView)view.findViewById(R.id.arrow_down);
+        if (hourlyWeather.getVisibility() == view.GONE) {
+            // it's collapsed - expand it
+            hourlyWeather.setVisibility(view.VISIBLE);
+            ObjectAnimator objectAnimator = ObjectAnimator.ofFloat(arrowDown, "rotation", 90f, 0f).setDuration(250);
+            objectAnimator.start();
+
+            ValueAnimator va = ValueAnimator.ofInt(0, 200).setDuration(250);
+            va.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+                public void onAnimationUpdate(ValueAnimator animation) {
+                    Integer value = (Integer) animation.getAnimatedValue();
+                    hourlyWeather.getLayoutParams().height = value.intValue();
+                    hourlyWeather.requestLayout();
+                }
+            });
+            va.start();
+        } else if (hourlyWeather.getVisibility() == view.INVISIBLE){
+            hourlyWeather.setVisibility(view.VISIBLE);
+            ObjectAnimator objectAnimator = ObjectAnimator.ofFloat(arrowDown, "rotation", 90f, 0f).setDuration(250);
+            objectAnimator.start();
+
+            ValueAnimator va = ValueAnimator.ofInt(0, 200).setDuration(250);
+            va.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+                public void onAnimationUpdate(ValueAnimator animation) {
+                    Integer value = (Integer) animation.getAnimatedValue();
+                    hourlyWeather.getLayoutParams().height = value.intValue();
+                    hourlyWeather.requestLayout();
+                }
+            });
+            va.start();
+        }
+        else {
+            // it's expanded - collapse it
+            ValueAnimator va = ValueAnimator.ofInt(200, 0).setDuration(250);
+            va.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+                public void onAnimationUpdate(ValueAnimator animation) {
+                    Integer value = (Integer) animation.getAnimatedValue();
+                    hourlyWeather.getLayoutParams().height = value.intValue();
+                    hourlyWeather.requestLayout();
+                }
+            });
+            va.start();
+            hourlyWeather.setVisibility(view.INVISIBLE);
+            ObjectAnimator objectAnimator = ObjectAnimator.ofFloat(arrowDown, "rotation", 0f, 90f).setDuration(250);
+            objectAnimator.start();
+        }
+
+
+
+
+
     }
 
 
@@ -386,7 +452,7 @@ public class WeatherActivity extends AppCompatActivity implements GoogleApiClien
         }, 500);
 
     }
-//blablabla aaaaaaaaaaaaaaaaa
+
     public void getCurrentDate(){
         long date = System.currentTimeMillis();
 
