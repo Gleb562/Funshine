@@ -13,23 +13,33 @@ public class DailyWeatherReport {
     public static final String WEATHER_TYPE_SNOW = "Snow";
     public static final String WEATHER_TYPE_THUNDERSTORM = "Thunderstorm";
 
-    private String cityName;
-    private String country;
+
     private int currentTemp;
     private int maxTemp;
     private int minTemp;
+    private int pressure;
+    private int humidity;
+    private int windSpeed;
+    private int clouds;
+    private String cityName;
+    private String country;
     private String weather;
     private String formatted_date;
     private String formatted_list_date;
 
 
-    public DailyWeatherReport(String cityName, String country, int currentTemp, int maxTemp, int minTemp, String weather, String rawDate) {
+
+    public DailyWeatherReport(String cityName, String country, int currentTemp, int maxTemp, int minTemp, String weather, String rawDate, int pressure,int humidity, int windSpeed, int clouds) {
         this.cityName = cityName;
         this.country = country;
         this.currentTemp = currentTemp;
         this.maxTemp = maxTemp;
         this.minTemp = minTemp;
         this.weather = weather;
+        this.pressure = pressure;
+        this.humidity = humidity;
+        this.windSpeed = windSpeed;
+        this.clouds = clouds;
         this.formatted_date = rawDateToPretty(rawDate);
         this.formatted_list_date = rawDateToPrettyList(rawDate);
 
@@ -88,5 +98,21 @@ public class DailyWeatherReport {
 
     public String getFormatted_list_date() {
         return formatted_list_date;
+    }
+
+    public int getPressure() {
+        return pressure;
+    }
+
+    public int getHumidity() {
+        return humidity;
+    }
+
+    public int getWindSpeed() {
+        return windSpeed;
+    }
+
+    public int getClouds() {
+        return clouds;
     }
 }
