@@ -3,16 +3,22 @@ package com.example.gleb1.funshine.activities;
 import android.Manifest;
 import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
+import android.app.ActivityManager;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.location.Location;
+import android.os.Build;
 import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -20,18 +26,23 @@ import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.CardView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
+import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -40,9 +51,9 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
+import com.example.gleb1.funshine.services.MyService;
 import com.example.gleb1.funshine.R;
 import com.example.gleb1.funshine.model.DailyWeatherReport;
-import com.example.gleb1.funshine.model.HourlyWeatherReport;
 import com.example.gleb1.funshine.model.TodayWeatherReport;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -53,16 +64,18 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.text.DecimalFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.Locale;
 
 
-
-import xyz.matteobattilana.library.Common.Constants;
 import xyz.matteobattilana.library.WeatherView;
 
-public class WeatherActivity extends AppCompatActivity implements GoogleApiClient.OnConnectionFailedListener, GoogleApiClient.ConnectionCallbacks, com.google.android.gms.location.LocationListener, SwipeRefreshLayout.OnRefreshListener,NavigationView.OnNavigationItemSelectedListener {
+public class WeatherActivity extends AppCompatActivity implements GoogleApiClient.OnConnectionFailedListener, GoogleApiClient.ConnectionCallbacks, com.google.android.gms.location.LocationListener, SwipeRefreshLayout.OnRefreshListener,NavigationView.OnNavigationItemSelectedListener,DrawerLayout.DrawerListener {
     final String URL_BASE = "http://api.openweathermap.org/data/2.5/forecast";
     final String URL_CURRENT_TEMP_BASE ="http://api.openweathermap.org/data/2.5/weather";
     final String URL_COORD = "/?lat=";//9.9687&lon=76.299";
@@ -72,7 +85,10 @@ public class WeatherActivity extends AppCompatActivity implements GoogleApiClien
 
     public static final String APP_PREFERENCES = "mysettings";
     public static final String APP_PREFERENCES_COUNTER = "counter";
-    static SharedPreferences mSettings;
+    public static final String APP_PREFERENCES_PRESSURE = "pressure";
+    public static final String APP_PREFERENCES_NOTIFICATION = "notification";
+    public static final String APP_PREFERENCES_LOCATION = "location";
+    public static SharedPreferences mSettings;
     private int mCounter;
 
     private GoogleApiClient mGoogleApiClient;
@@ -82,8 +98,8 @@ public class WeatherActivity extends AppCompatActivity implements GoogleApiClien
     //ArrayList<HourlyWeatherReport> hourlyWeatherReport = new ArrayList<>();
 
     private ImageView weatherIcon;
-    private ImageView weatherIconMini;
     private ImageView arrowDown;
+    private ImageView umbrellaLogo;
     private TextView weatherDate;
     private TextView currentTemp;
     private TextView lowTemp;
@@ -94,6 +110,10 @@ public class WeatherActivity extends AppCompatActivity implements GoogleApiClien
     private TextView degreesTextView;
     private String degrees = " °C";
     private String windSpeedUnits = " m/s";
+    private LinearLayout settingsBtn;
+    private TextView currentNavLocatTemp;
+    private Switch notificationSwitch;
+    private CardView mainCardView;
 
     WeatherAdapter mAdapter;
     WeatherView weatherView;
@@ -102,7 +122,6 @@ public class WeatherActivity extends AppCompatActivity implements GoogleApiClien
     static DrawerLayout drawer;
 
     public Location refreshLocation;
-    Bundle bundle1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -112,7 +131,7 @@ public class WeatherActivity extends AppCompatActivity implements GoogleApiClien
         mSettings = getSharedPreferences(APP_PREFERENCES, Context.MODE_PRIVATE);
 
         weatherIcon = (ImageView)findViewById(R.id.weatherIcon);
-        weatherIconMini = (ImageView)findViewById(R.id.weatherIconMini);
+        umbrellaLogo = (ImageView)findViewById(R.id.umbrellaLogo);
         weatherDate = (TextView)findViewById(R.id.weatherDate);
         currentTemp = (TextView)findViewById(R.id.currentTemp);
         lowTemp = (TextView)findViewById(R.id.lowTemp);
@@ -120,6 +139,10 @@ public class WeatherActivity extends AppCompatActivity implements GoogleApiClien
         weatherDescription = (TextView)findViewById(R.id.weatherDescription);
         updateTextView = (TextView)findViewById(R.id.updateTextView);
         degreesTextView = (TextView)findViewById(R.id.degreesTextView);
+        settingsBtn = (LinearLayout) findViewById(R.id.settingsBtn);
+        currentNavLocatTemp = (TextView)findViewById(R.id.currentNavLocatTemp);
+        notificationSwitch = (Switch)findViewById(R.id.notificationSwitch);
+        mainCardView = (CardView)findViewById(R.id.mainCardView);
 
         RecyclerView recyclerView = (RecyclerView)findViewById(R.id.content_weather_reports);
         mAdapter = new WeatherAdapter(weatherReportlist);
@@ -136,7 +159,7 @@ public class WeatherActivity extends AppCompatActivity implements GoogleApiClien
         swipeLayout.setOnRefreshListener(this);
 
 
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        final DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.setDrawerListener(toggle);
@@ -145,12 +168,51 @@ public class WeatherActivity extends AppCompatActivity implements GoogleApiClien
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
+        settingsBtn.setOnClickListener(new android.view.View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(getBaseContext(), SettingsActivity.class);
+                startActivity(intent);
+                overridePendingTransition(R.anim.fade_in_anim, R.anim.fade_out_anim);
+            }
+        });
 
+        umbrellaLogo.setOnClickListener(new android.view.View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                drawer.openDrawer(Gravity.LEFT);
+            }
+        });
+
+    }
+
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (mSettings.contains(APP_PREFERENCES_NOTIFICATION)) {
+            mCounter = mSettings.getInt(APP_PREFERENCES_NOTIFICATION, 0);
+            if(mCounter == 0){
+                if (!isMyServiceRunning()){
+                    Intent serviceIntent = new Intent(getBaseContext(),MyService.class);
+                    getBaseContext().startService(serviceIntent);
+                }
+            }
+        }
     }
 
     @Override
     protected void onPause() {
         super.onPause();
+        if (mSettings.contains(APP_PREFERENCES_NOTIFICATION)) {
+            mCounter = mSettings.getInt(APP_PREFERENCES_NOTIFICATION, 0);
+            if(mCounter == 0){
+                if (!isMyServiceRunning()){
+                    Intent serviceIntent = new Intent(getBaseContext(),MyService.class);
+                    getBaseContext().startService(serviceIntent);
+                }
+            }
+        }
         /*// Запоминаем данные
         SharedPreferences.Editor editor = mSettings.edit();
         editor.putInt(APP_PREFERENCES_COUNTER, mCounter);
@@ -159,7 +221,10 @@ public class WeatherActivity extends AppCompatActivity implements GoogleApiClien
     @Override
     protected void onResume() {
         super.onResume();
-
+        if (isMyServiceRunning()){
+            Intent serviceIntent = new Intent(getBaseContext(),MyService.class);
+            getBaseContext().stopService(serviceIntent);
+        }
         if (mSettings.contains(APP_PREFERENCES_COUNTER)) {
             mCounter = mSettings.getInt(APP_PREFERENCES_COUNTER, 0);
             switch (mCounter){
@@ -178,7 +243,6 @@ public class WeatherActivity extends AppCompatActivity implements GoogleApiClien
                     windSpeedUnits = " m/s";
                     break;
             }
-
         }
     }
     public void downloadWeatherData(Location location){
@@ -300,43 +364,67 @@ public class WeatherActivity extends AppCompatActivity implements GoogleApiClien
                 case TodayWeatherReport.WEATHER_TYPE_CLOUDS:
                     weatherIcon.setImageDrawable(getResources().getDrawable(R.drawable.cloudy));
                     //weatherIconMini.setImageDrawable(getResources().getDrawable(R.drawable.cloudy));
-                    weatherView.setWeather(Constants.weatherStatus.SUN).setLifeTime(1650).setFadeOutTime(1000).setParticles(43).setFPS(60).setAngle(-5).startAnimation();
+                    //weatherView.setWeather(Constants.weatherStatus.SUN).setLifeTime(1650).setFadeOutTime(1000).setParticles(43).setFPS(60).setAngle(-5).startAnimation();
                     break;
                 case TodayWeatherReport.WEATHER_TYPE_RAIN:
                     weatherIcon.setImageDrawable(getResources().getDrawable(R.drawable.rainy));
                     //weatherIconMini.setImageDrawable(getResources().getDrawable(R.drawable.rainy));
-                    weatherView.setWeather(Constants.weatherStatus.RAIN).setLifeTime(1650).setFadeOutTime(1000).setParticles(43).setFPS(60).setAngle(-5).startAnimation();
+                    //weatherView.setWeather(Constants.weatherStatus.RAIN).setLifeTime(1650).setFadeOutTime(1000).setParticles(43).setFPS(60).setAngle(-5).startAnimation();
                     break;
                 case TodayWeatherReport.WEATHER_TYPE_SNOW:
                     weatherIcon.setImageDrawable(getResources().getDrawable(R.drawable.snow));
                     //weatherIconMini.setImageDrawable(getResources().getDrawable(R.drawable.snow));
-                    weatherView.setWeather(Constants.weatherStatus.SUN).setLifeTime(1650).setFadeOutTime(1000).setParticles(43).setFPS(60).setAngle(-5).startAnimation();
+                    //weatherView.setWeather(Constants.weatherStatus.SUN).setLifeTime(1650).setFadeOutTime(1000).setParticles(43).setFPS(60).setAngle(-5).startAnimation();
                     break;
                 case TodayWeatherReport.WEATHER_TYPE_THUNDERSTORM:
                     weatherIcon.setImageDrawable(getResources().getDrawable(R.drawable.thunder_lightning));
                     //weatherIconMini.setImageDrawable(getResources().getDrawable(R.drawable.thunder_lightning));
-                    weatherView.setWeather(Constants.weatherStatus.RAIN).setLifeTime(1650).setFadeOutTime(1000).setParticles(43).setFPS(60).setAngle(-5).startAnimation();
+                    //weatherView.setWeather(Constants.weatherStatus.RAIN).setLifeTime(1650).setFadeOutTime(1000).setParticles(43).setFPS(60).setAngle(-5).startAnimation();
                 default:
                     weatherIcon.setImageDrawable(getResources().getDrawable(R.drawable.sunny));
                     //weatherIconMini.setImageDrawable(getResources().getDrawable(R.drawable.sunny));
-                    weatherView.setWeather(Constants.weatherStatus.SUN).setLifeTime(1650).setFadeOutTime(1000).setParticles(43).setFPS(60).setAngle(-5).startAnimation();
+                    //weatherView.setWeather(Constants.weatherStatus.SUN).setLifeTime(1650).setFadeOutTime(1000).setParticles(43).setFPS(60).setAngle(-5).startAnimation();
+            }
+            NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+            if (mSettings.contains(APP_PREFERENCES_NOTIFICATION)) {
+                mCounter = mSettings.getInt(APP_PREFERENCES_NOTIFICATION, 0);
+                switch (mCounter){
+                    case 0:
+                        Intent intent = new Intent(this, WeatherActivity.class);
+                        PendingIntent pIntent = PendingIntent.getActivity(this, 0, intent, 0);
+                        NotificationCompat.Builder mBuilder =
+                                new NotificationCompat.Builder(this)
+                                        .setSmallIcon(R.drawable.umbrella_logo)
+                                        .setContentTitle(Integer.toString(todayReport.getCurrentTemperature()) + degrees)
+                                        .setContentText(report.getCityName() + ", " + report.getCountry())
+                                        .setContentIntent(pIntent)
+                                        .setOngoing(true);
+
+                        notificationManager.notify(1,mBuilder.build());
+                        break;
+                    case 1:
+                        notificationManager.cancel(1);
+                        break;
+                }
             }
 
-            //weatherDate.setText(report.getFormatted_date());
             getCurrentDate();
             currentTemp.setText(Integer.toString(todayReport.getCurrentTemperature()));
             lowTemp.setText(Integer.toString(todayReport.getTodayTempMin()) + "\u00B0");
             cityCountry.setText(report.getCityName() + ", " + report.getCountry());
             weatherDescription.setText(todayReport.getTodayWeatherType());
+            currentNavLocatTemp.setText(Integer.toString(todayReport.getCurrentTemperature()) + degrees);
         }
     }
-
 
 
     @Override
     public void onLocationChanged(Location location) {
         downloadWeatherData(location);
         refreshLocation = location;
+        SharedPreferences.Editor editor = mSettings.edit();
+        editor.putString(APP_PREFERENCES_LOCATION, URL_CURRENT_TEMP_BASE + URL_COORD + location.getLatitude() + "&lon=" + location.getLongitude() + URL_UNITS + URL_API_KEY);
+        editor.apply();
     }
 
     @Override
@@ -406,6 +494,7 @@ public class WeatherActivity extends AppCompatActivity implements GoogleApiClien
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }
+
     @Override
     public void onBackPressed() {
         drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -416,7 +505,26 @@ public class WeatherActivity extends AppCompatActivity implements GoogleApiClien
         }
     }
 
+    @Override
+    public void onDrawerSlide(View drawerView, float slideOffset) {
 
+    }
+
+    @Override
+    public void onDrawerOpened(View drawerView) {
+
+    }
+
+    @Override
+    public void onDrawerClosed(View drawerView) {
+
+    }
+
+    @Override
+    public void onDrawerStateChanged(int newState) {
+        if (newState == DrawerLayout.STATE_DRAGGING) {
+        }
+    }
 
 
     public class WeatherAdapter extends RecyclerView.Adapter<WeatherReportViewHolder>{
@@ -564,6 +672,20 @@ public class WeatherActivity extends AppCompatActivity implements GoogleApiClien
             windTextView.setText((Integer.toString(report.getWindSpeed()))+ windSpeedUnits);
             cloudsTextView.setText((Integer.toString(report.getClouds())) + " %");
 
+            if (mSettings.contains(APP_PREFERENCES_PRESSURE)) {
+                mCounter = mSettings.getInt(APP_PREFERENCES_PRESSURE, 0);
+                switch (mCounter){
+                    case 1:
+                        pressureTextView.setText((Integer.toString(report.getPressure()))+ " hpa");
+                        break;
+                    case 0:
+                        double tempPressure = report.getPressure() * 0.750064;
+                        String formattedDouble = new DecimalFormat("#0.00").format(tempPressure);
+                        pressureTextView.setText(formattedDouble + " mmHg");
+                        break;
+                }
+            }
+
             switch (report.getWeather()){
                 case DailyWeatherReport.WEATHER_TYPE_CLOUDS:
                     weatherIcon.setImageDrawable(getResources().getDrawable(R.drawable.cloudy_mini));
@@ -597,8 +719,10 @@ public class WeatherActivity extends AppCompatActivity implements GoogleApiClien
     }
 
     public void refreshActivity(){
+
         mGoogleApiClient = new GoogleApiClient.Builder(this).enableAutoManage(this,this).addConnectionCallbacks(this).addApi(LocationServices.API).addOnConnectionFailedListener(this).build();
     }
+
 
     public void getCurrentDate(){
         long date = System.currentTimeMillis();
@@ -609,6 +733,16 @@ public class WeatherActivity extends AppCompatActivity implements GoogleApiClien
         String lastUpdateString = sdfUpdateTime.format(date);
         weatherDate.setText("Today, " + dateString);
         updateTextView.setText("Last update: " + lastUpdateString);
+        int currentHour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY); //Current hour
+        if(currentHour > 18 || currentHour < 6){
+            Window window = getWindow();
+            window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                window.setStatusBarColor(0xFF7168b2);
+                mainCardView.setBackgroundColor(0xFF7177b2);
+            }
+        }
+
 
         Animation shake = AnimationUtils.loadAnimation(this, R.anim.anim);
         findViewById(R.id.updateTextView).startAnimation(shake);
@@ -635,5 +769,16 @@ public class WeatherActivity extends AppCompatActivity implements GoogleApiClien
 
         return super.onOptionsItemSelected(item);
     }
+
+    private boolean isMyServiceRunning() {
+        ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if (MyService.class.getName().equals(service.service.getClassName())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
 
 }

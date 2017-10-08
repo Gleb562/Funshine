@@ -36,5 +36,6 @@ dependencies {
     compile 'com.android.support:design:26.+'
     compile 'com.github.MatteoBattilana:WeatherView:1.1.1'
     compile 'com.thoughtbot:expandablerecyclerview:1.3'
+    compile 'com.android.support:support-v4:26.+'
     testCompile 'junit:junit:4.12'
 }

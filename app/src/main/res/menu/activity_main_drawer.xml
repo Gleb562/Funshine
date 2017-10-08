@@ -8,6 +8,7 @@
             />
 
     <item android:title="Settings">
+        <include layout="@layout/lay_drawer_menu" />
         <menu>
         <item
             android:id="@+id/nav_manage"
